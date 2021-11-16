@@ -1,5 +1,12 @@
 SUDOKU
 (Linux, cmake ,gcc)
+
+mkdir build 
+cd ./build
+git clone https://github.com/Brahms95/Sudoku/tree/release_1
+git submodule init --update
+git submodule update --init
+
 - REGISTRARION:
  Команда 1: регистрация пользователя и вход на нулевой уровень ( если есть такой логин то не создаст)
  Команда 2: вход в систему если есть пользователь  
