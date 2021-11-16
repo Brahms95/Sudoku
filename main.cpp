@@ -1,136 +1,175 @@
 #include <iostream>
-#include <iostream>
 #include <limits>
-
+#include <clocale>
 #include "Interface.h"
 
-#ifdef __linux__
-#include <dlfcn.h>
-#endif
-typedef int  (*f_ptr)();
+#ifndef __GNUC__
+	#include <windows.h>						// For Windows types definition
+
+#endif	// __GNUC__
+
+#undef max
+#ifdef __GNUC__
+	#include <dlfcn.h>							// For dlopen( ... ), dlclose( ... ) and dlsym( ... ) definitions
+	typedef	void*	HMODULE;
+#endif	// __GNUC__
+
 using namespace std;
 edo_FunctionList_S*	pstFlist;
-void *hLibrary;
-void linux_example() {
-#ifdef __linux__ 
-	
-	hLibrary = dlopen("libsudokuLib.so", RTLD_LAZY);
-	edo_GetFunctionList_T edo_output = (edo_GetFunctionList_T)dlsym(hLibrary, "_Z19edo_GetFunctionListv");
-    pstFlist=edo_output();
+HMODULE	hLibrary;
 
-#endif
+
+void LoadStorageLibrary() {
+
+#ifdef __GNUC__
+    hLibrary = dlopen("libsudokuLib.so", RTLD_LAZY);
+#else	// __GNUC__
+        hLibrary = ::LoadLibrary("sudokuLib.dll");
+#endif	// __GNUC__
+    if (hLibrary != NULL) {
+#ifdef __GNUC__
+        edo_GetFunctionList_T edo_function = (edo_GetFunctionList_T)dlsym(hLibrary, "_Z19edo_GetFunctionListv");
+        pstFlist=edo_function();
+#else	// __GNUC__
+        edo_GetFunctionList_T edo_function = (edo_GetFunctionList_T)::GetProcAddress(hLibrary, "_Z19edo_GetFunctionListv");
+#endif	// __GNUC__
+    if (pstFlist != NULL) {	
+        pstFlist=edo_function();
+        }
+    } 
+
 }
 
 int main(){
-linux_example();
+    setlocale(LC_ALL,"Russian");
+    LoadStorageLibrary();
 
-printf (" \t Добро пожаловать в Sudoko \n");
-void * user= NULL;
-void * pSudoku = NULL;
-short _input;
-while(true){
-printf( "Выберите:\n 1 -  регистрация \n 2 -  войти\n");
+    printf (" \t Добро пожаловать в Sudoko \n");
+    User * user= NULL;
+    Board * pSudoku = NULL;
+    short _input;
+    while(true){
+    printf( "Выберите:\n 1 -  Регистрация \n 2 -  Войти\n");
 
+    std::cin >> _input;
+    // std::cin.clear();
+    // std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::string user_name;
 
-std::cin >> _input;
-// std::cin.clear();
-// std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-std::string user_name;
+    bool registration_flag = false;
 
-bool registration_flag = false;
+    printf ("Введите login\n");
+    std::cin >> user_name;
+    switch (_input){
+    
+        case 1:{
+            
+            if (pstFlist->registration(user_name,0) != 1)   {
+                user = pstFlist->input(user_name);
+                if (user == NULL){
+                    break;  
+                }
+                std::cout <<  "Добро пожаловать" << "  " << user_name ;  
+                registration_flag =true;  
+                break;  
+            }
+            else {
+                break; 
+            }
+        }
 
-printf ("Введите login\n");
-std::cin >> user_name;
-switch (_input){
-   
-	case 1:{
-        
-	    if (pstFlist->registration(user_name,0) != 1)   {
+        case 2:{
             user= pstFlist->input(user_name);
             if (user == NULL){
                 break;  
             }
-            std::cout <<  "Добро пожаловать" << "  " << user_name ;  
+            std::cout <<  "С возвращением" << "  " << user_name ;
             registration_flag =true;  
-            break;  
+            break;
         }
-        else {
-            break; 
+
+        default:
+            printf("Пока! ,Приходи снова\n");
+            break;
+        }
+
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        if (registration_flag) {
+            break;
         }
     }
+    // работа с Sudoku
+    bool flag_sudoku = false;
+    pSudoku =pstFlist->output(user);
+    if (pSudoku)
+    {   while(true){
+            std::cout <<  " 1 - Помощь" << std::endl;  
+            std::cout <<  "2 - Добавить правильный ответ  " << std::endl;  
+            std::cout <<  "3 - Проверить " << std::endl;
+            std::cout <<  "4 - Выход " << std::endl;
+            _input = 0;
 
-	case 2:{
-        user= pstFlist->input(user_name);
-        if (user == NULL){
-            break;  
-        }
-        std::cout <<  "С возвращением " << "  " << user_name ;
-        registration_flag =true;  
-        break;
-    }
+            std::cin >> _input;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+            std::string table_sudoku;
 
-	default:
-		printf("Пока! ,Приходи снова\n");
-		break;
-	}
-
-    std::cin.clear();
-	std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    if (registration_flag) {
-        break;
-    }
-}
-// работа с Sudoku
-bool flag_sudoku = false;
-pSudoku =pstFlist->output(user);
-if (pSudoku)
-{   while(true){
-        std::cout <<  " 1 - Помощь" << std::endl;  
-        std::cout <<  "2 - Добавить правильный ответ  " << std::endl;  
-        std::cout <<  "3 - Проверить " << std::endl;
-        _input = 0;
-        std::cin >> _input;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-        std::string table_sudoku;
-
-        switch (_input){
-        
-            case 1:{   
-                std::cout <<  "Введите номер строки и номер колонки ( пример 12)" << std::endl;
-                std::cin >>table_sudoku ;  
-                pstFlist->verifity_suboku(&table_sudoku[0], pSudoku);  
-                break;   
+            switch (_input){
+            
+                case 1:{   
+                    std::cout <<  "Введите номер строки и номер колонки (например: 12)" << std::endl;
+                    std::cin >>table_sudoku ;  
+                    pstFlist->verifity_suboku(&table_sudoku[0], pSudoku);  
+                    break;   
                 }
 
-            case 2:{   
-                std::cout <<  "Введите номер строки и номер колонки ( пример 12) пробел и значение " << std::endl;
-                std::cout << "НЕ работает "<< std::endl;
-                std::cin >>table_sudoku ;  
-                pstFlist->adding_velue_suboku(&table_sudoku[0], pSudoku);  
-                break;   
-            }    
+                case 2:{   
+                    std::cout <<  "Введите номер строки и номер колонки (Например 12) пробел и значение " << std::endl;
+                    std::cin >>table_sudoku ; 
+            
+                    if (table_sudoku.size() == 4 ){
+                        pstFlist->adding_velue_suboku(&table_sudoku[0], pSudoku);
+                    }
+                    else{
+                        std::cout <<  "Введите номер строки и номер колонки (Например 12) пробел и значение " << std::endl;
+                    }
                 
-            case 3:{
-                std::cout <<  "Чтобо проверить свое решение , надо ввести все цифры подряд (без проелов)" << std::endl;  
-                std::cin >>table_sudoku ;
-                //2341143242133124
-                if (pstFlist->result(&table_sudoku[0], pSudoku, user)){
-                    pSudoku=NULL;
-                    pSudoku =pstFlist->output(user);
-                    std::cout <<  "Отлично. Продолжай в том же духе!" << std::endl;  
+                    break;   
+                }    
+                    
+                case 3:{
+                    std::cout <<  "Чтобо проверить свое решение , надо ввести все цифры подряд (без пробелов)" << std::endl;  
+                    std::cin >>table_sudoku ;
+                    //2341143242133124
+                    if (pstFlist->result(&table_sudoku[0], pSudoku, user)){
+                        pSudoku=NULL;
+                        pSudoku =pstFlist->output(user);
+                        std::cout <<  "Отлично. Продолжай в том же духе!" << std::endl;  
+                        break;
+                    }  
                     break;
-                }  
-                break;
+                }
 
+                case 4:{
+                    pstFlist->free_( user, pSudoku);
+                    return 0;
+                }
+
+                default:
+                    break;
+                  
             }
-                
+        
         }
-       
     }
-}
 
-pstFlist->free_( user, pSudoku);
-dlclose(hLibrary);
-return 0;
+    pstFlist->free_( user, pSudoku);
+
+#ifdef __GNUC__
+		dlclose( hLibrary );
+#else	// __GNUC__
+		::FreeLibrary( hLibrary );
+#endif	// __GNUC__
+    return 0;
 }

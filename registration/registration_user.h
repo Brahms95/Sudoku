@@ -9,7 +9,7 @@
  enum Return{
         Ok = 0,
         Error = 1,
-    };
+};
 
 class User {
  
@@ -22,20 +22,19 @@ class User {
         }
          int get_level(){
              return this->level;
-         }
-      User* _get(){return user_delete;};
-      std::string _get_name(){return name_user;};
-      int _get_level(){ return level;};
-      void set_level_(int level){ this->level= level;};
-        void _set(User* user_delete){this->user_delete =user_delete;};
+        }
+   
+        std::string _get_name(){return name_user;};
+        int _get_level(){ return level;};
+        void set_level_(int level){ this->level= level;};
+       
     private:
-     std::string name_user;
-     int level;
-User* user_delete;
+        std::string name_user;
+        int level;
+     
 };
-static User* user_delete1;
+
 int registration( std::string &user_name,int level);
 User* input(std::string &user_name);
-
 
 #endif

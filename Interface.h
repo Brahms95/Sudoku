@@ -1,5 +1,17 @@
+#pragma once
+
 #include "sudoku/Board.h"
 #include "registration/registration_user.h"
+/** Макрос префикса импорта/экспорта методов данной библиотеки */
+#ifdef _WIN32
+  #ifdef BUILD_SUM_DLL
+    #define DLL_EXPORT __declspec(dllexport)
+  #else
+    #define DLL_EXPORT __declspec(dllimport)
+  #endif
+#else
+  #define DLL_EXPORT
+#endif
 
 
 /**
@@ -8,7 +20,7 @@
  * @param level  - Уровень пользователя
  * @return Результат выполнения или код ошибки: 1 - успешно, иначе ошибка
  */    
-int edo_registration ( std::string user_name,int level);
+DLL_EXPORT  int edo_registration ( std::string user_name,int level);
 typedef int ( *edo_registration_T)( std::string, int);
 
 /**
@@ -17,8 +29,8 @@ typedef int ( *edo_registration_T)( std::string, int);
  
  * @return Указатель на класс user
  */    
-void* edo_input ( std::string user_name);
-typedef void* ( *edo_input_T)( std::string);
+DLL_EXPORT  User * edo_input ( std::string user_name);
+typedef User * ( *edo_input_T)( std::string);
 
 /**
  * Вывод таблицы  для определенного пользователя 
@@ -26,8 +38,8 @@ typedef void* ( *edo_input_T)( std::string);
 
  * @return Результат выполнения указатель на класс sudoku
  */
-void*  edo_output(void* user);
-typedef void* ( *edo_output_T)( void* user);
+DLL_EXPORT  Board*  edo_output(User* user);
+typedef Board* ( *edo_output_T)( User* user);
 
 /**
  * Помощь решение Sudoku
@@ -35,8 +47,8 @@ typedef void* ( *edo_output_T)( void* user);
  * @param pSudoku  - Указатель на класс sudoku
  * @return Результат выполнения или код ошибки: true - успешно, иначе ошибка
  */
-bool edo_verifity_suboku(char* index_table, void* pSudoku);
-typedef bool ( *edo_verifity_suboku_T)( char* index_table, void* pSudoku);
+DLL_EXPORT bool edo_verifity_suboku(char* index_table, Board* pSudoku);
+typedef bool ( *edo_verifity_suboku_T)( char* index_table, Board* pSudoku);
 
 
 /**
@@ -45,8 +57,8 @@ typedef bool ( *edo_verifity_suboku_T)( char* index_table, void* pSudoku);
  * @param pSudoku  - Указатель на класс sudoku
  * @return Результат выполнения или код ошибки: true - успешно, иначе ошибка
  */
-void edo_adding_velue_suboku(char* index_table, void* pSudoku);
-typedef void ( *edo_adding_velue_suboku_T)( char* index_table, void* pSudoku);
+bool edo_adding_velue_suboku(char* index_table, Board* pSudoku);
+typedef bool ( *edo_adding_velue_suboku_T)( char* index_table, Board* pSudoku);
 
 /**
  * Проверка решенной Sudoku  и вывод решеной 
@@ -55,8 +67,8 @@ typedef void ( *edo_adding_velue_suboku_T)( char* index_table, void* pSudoku);
  *  * @param user [in] - Указатель на класс user
 * @return Результат выполнения или код ошибки: true - успешно, иначе ошибка
  */
-bool edo_result(char* table_sudoku,  void* pSudoku, void* user);
-typedef bool ( *edo_result_T)( char* table_sudoku,  void* pSudoku, void* user );
+DLL_EXPORT bool edo_result(char* table_sudoku,  Board* pSudoku, void* user);
+typedef bool ( *edo_result_T)( char* table_sudoku,  Board* pSudoku, User* user );
 
 /**
  * Освобожнение памяти 
@@ -64,8 +76,8 @@ typedef bool ( *edo_result_T)( char* table_sudoku,  void* pSudoku, void* user );
  *  * @param user  - Указатель на класс user
 * @return Результат выполнения :освобождение памяи 
  */
-void edo_free_(void*, void*);
-typedef void ( *edo_free_T)(void* user, void* sudoku);
+DLL_EXPORT void edo_free_(User*, Board*);
+typedef void ( *edo_free_T)(User* user, Board* sudoku);
 
 /** Структура списка указателей на интерфейсные методы данной библиотеки */
 struct edo_FunctionList_S
@@ -79,12 +91,10 @@ struct edo_FunctionList_S
 
 };
 
-
-
 typedef struct edo_FunctionList_S	edo_FunctionList_S;
 /**
  * Получение указателя на структуру edo_FunctionList_S
  * @return Ненулевой указатель на структуру списка указателей на интерфейсные методы данной библиотеки edo_FunctionList_S
  */
- edo_FunctionList_S* edo_GetFunctionList( void );
+DLL_EXPORT edo_FunctionList_S* edo_GetFunctionList( void );
 typedef edo_FunctionList_S* ( *edo_GetFunctionList_T )( void );
